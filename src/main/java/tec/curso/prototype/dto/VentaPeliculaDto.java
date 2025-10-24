@@ -1,5 +1,3 @@
-// Archivo: src/main/java/tec/curso/prototype/dto/VentaPeliculaDto.java
-
 package tec.curso.prototype.dto;
 
 /**
