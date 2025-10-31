@@ -27,12 +27,12 @@ public class JavaFxApplication extends Application {
     public void start(Stage stage) throws IOException {
         primaryStage = stage;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(ApplicationRunner.class.getResource("LogIn.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ApplicationRunner.class.getResource("Welcome.fxml"));
         fxmlLoader.setControllerFactory(applicationContext::getBean);
 
         Parent root = fxmlLoader.load();
         Scene scene = new Scene(root);
-        stage.setTitle("Dashboard de Operaciones");
+        stage.setTitle("");
         stage.setScene(scene);
         stage.show();
     }

@@ -7,8 +7,7 @@ import tec.curso.prototype.JavaFxApplication;
 import java.io.IOException;
 
 @Component
-public class LogInController {
-
+public class WelcomeController {
     @FXML
     private void action() throws IOException {
         JavaFxApplication.changeScene("SingUp.fxml");

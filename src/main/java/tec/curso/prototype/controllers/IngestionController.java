@@ -13,7 +13,7 @@ import tec.curso.prototype.services.MovieSalesService;
 import tec.curso.prototype.services.ShowtimeService;
 
 /**
- * Controlador REST para manejar las simulaciones de ventas desde el dashboard.
+ * Controlador REST para manejar las simulaciones de ventas.
  * Cada endpoint corresponde a un módulo de simulación y utiliza un servicio de negocio especializado.
  */
 @RestController
