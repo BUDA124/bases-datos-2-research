@@ -1,14 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="tec.curso.prototype.controllers.MovieSalesPowerController"
-            prefHeight="400.0" prefWidth="600.0">
-
+<AnchorPane maxHeight="700.0" maxWidth="1200.0" minHeight="700.0" minWidth="1200.0" prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tec.curso.prototype.controllers.WelcomeController">
+   <children>
+      <AnchorPane maxHeight="150.0" maxWidth="1200.0" minHeight="150.0" minWidth="1200.0" prefHeight="150.0" prefWidth="1200.0" style="-fx-background-color: #ff5f1f;">
+         <children>
+            <ImageView fitHeight="133.0" fitWidth="135.0" layoutX="534.0" layoutY="9.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../../../images/LogoCine.png" />
+               </image>
+            </ImageView>
+            <Text layoutX="59.0" layoutY="87.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Finances" wrappingWidth="149.896484375">
+               <font>
+                  <Font name="Leelawadee UI Bold" size="36.0" />
+               </font>
+            </Text>
+            <Text layoutX="276.0" layoutY="90.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-effect: dropshadow(gaussian, white, 8, 0.9, 0, 0);" text="Movies" wrappingWidth="133.0">
+               <font>
+                  <Font name="Leelawadee UI Bold" size="36.0" />
+               </font>
+            </Text>
+            <Text layoutX="776.0" layoutY="90.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Rooms" wrappingWidth="121.0">
+               <font>
+                  <Font name="Leelawadee UI Bold" size="36.0" />
+               </font>
+            </Text>
+            <Text layoutX="967.0" layoutY="90.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Inventory" wrappingWidth="167.0">
+               <font>
+                  <Font name="Leelawadee UI Bold" size="36.0" />
+               </font>
+            </Text>
+         </children>
+      </AnchorPane>
+      <AnchorPane layoutY="150.0" prefHeight="551.0" prefWidth="1200.0" />
+   </children>
 </AnchorPane>
