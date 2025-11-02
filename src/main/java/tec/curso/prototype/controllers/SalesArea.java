@@ -4,9 +4,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.chart.LineChart;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.control.Notifications;
@@ -18,7 +15,7 @@ import tec.curso.prototype.services.FinancialService;
 import java.io.IOException;
 
 @Component
-public class FinancialPulseController {
+public class SalesArea {
 
     @Autowired
     private FinancialService financialService; // Inyecta tu servicio de Spring

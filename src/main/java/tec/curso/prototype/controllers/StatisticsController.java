@@ -5,14 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tec.curso.prototype.JavaFxApplication;
 import tec.curso.prototype.services.MovieSalesService;
-import tec.curso.prototype.services.ShowtimeService;
 
 import java.io.IOException;
 
 @Component
-public class OccupancyOpportunityController {
+public class StatisticsController {
     @Autowired
-    private ShowtimeService showtimeService; // Inyecta tu servicio de Spring
+    private MovieSalesService movieSalesService; // Inyecta tu servicio de Spring
 
     @FXML
     public void initialize() {
@@ -20,7 +19,7 @@ public class OccupancyOpportunityController {
     }
 
     @FXML
-    private void registerTicketSale() {
+    private void registerMovieSale() {
         // TODO
     }
 
