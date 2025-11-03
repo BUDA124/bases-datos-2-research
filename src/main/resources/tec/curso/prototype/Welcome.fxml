@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -47,6 +48,7 @@
                         <Font name="Leelawadee UI Bold" size="22.0" />
                      </font>
                   </Text>
+                  <Label id="mejorPeliculaLabel" layoutX="127.0" layoutY="117.0" text="Label" />
                </children>
             </Pane>
             <Pane layoutX="458.0" layoutY="14.0" maxHeight="525.0" maxWidth="728.0" minHeight="525.0" minWidth="728.0" prefHeight="525.0" prefWidth="728.0" style="-fx-background-color: #ac937d; -fx-background-radius: 8px; -fx-padding: 10px; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0.5, 0, 2);">
@@ -61,6 +63,7 @@
                         <Font name="Leelawadee UI Bold" size="22.0" />
                      </font>
                   </Text>
+                  <Label id="estadoInventarioLabel" layoutX="225.0" layoutY="228.0" text="estadoInventarioLabel" />
                </children>
             </Pane>
             <Pane layoutX="14.0" layoutY="14.0" prefHeight="250.0" prefWidth="425.0" style="-fx-background-color: #b2ac88; -fx-background-radius: 8px; -fx-padding: 10px; -fx-max-height: 250px; -fx-max-width: 425px; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0.5, 0, 2);">
@@ -75,6 +78,7 @@
                         <Image url="@../../../images/WFinances.png" />
                      </image>
                   </ImageView>
+                  <Label id="flujoDineroLabel" layoutX="139.0" layoutY="117.0" text="asasa" />
                </children>
             </Pane>
          </children>

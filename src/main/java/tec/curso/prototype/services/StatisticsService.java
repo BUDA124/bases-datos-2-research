@@ -39,7 +39,7 @@ public class StatisticsService {
     }
 
     /**
-     * Obtiene el ranking de películas por número de espectadores.
+     * Obtiene el ranking de las 5 películas más vistas.
      */
     public List<Map<String, Object>> obtenerRankingPeliculas() {
         String sql = "SELECT titulo_pelicula, SUM(cantidad_tiquetes) AS total_espectadores " +
@@ -49,7 +49,7 @@ public class StatisticsService {
     }
 
     /**
-     * Obtiene el ranking de productos por cantidad vendida.
+     * Obtiene el ranking de los 5 productos más vendidos.
      */
     public List<Map<String, Object>> obtenerRankingProductos() {
         String sql = "SELECT nombre_producto, SUM(cantidad_vendida) AS total_vendido " +
@@ -58,7 +58,34 @@ public class StatisticsService {
         return ejecutarConsultaDeRanking(sql, "Ranking Productos");
     }
 
-    // --- Métodos de ayuda privados para no repetir código ---
+    /**
+     * NUEVO: Obtiene los ingresos diarios de taquilla para un gráfico de tendencias.
+     * @param dias El número de días hacia atrás a consultar.
+     * @return Una lista de mapas con "dia" y "ingresos".
+     */
+    public List<Map<String, Object>> obtenerIngresosDiariosTaquilla(int dias) {
+        String sql = String.format(
+                "SELECT TIME_FLOOR(__time, 'P1D') AS dia, SUM(ingreso_bruto) AS ingresos " +
+                        "FROM \"ventas_taquilla\" " +
+                        "WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '%d' DAY " +
+                        "GROUP BY 1 ORDER BY 1", dias);
+        return ejecutarConsultaDeRanking(sql, "Tendencia Diaria Taquilla");
+    }
+
+    /**
+     * NUEVO: Obtiene los ingresos diarios de dulcería para un gráfico de tendencias.
+     * @param dias El número de días hacia atrás a consultar.
+     * @return Una lista de mapas con "dia" y "ingresos".
+     */
+    public List<Map<String, Object>> obtenerIngresosDiariosDulceria(int dias) {
+        String sql = String.format(
+                "SELECT TIME_FLOOR(__time, 'P1D') AS dia, SUM(ingreso_bruto) AS ingresos " +
+                        "FROM \"ventas_dulceria\" " +
+                        "WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '%d' DAY " +
+                        "GROUP BY 1 ORDER BY 1", dias);
+        return ejecutarConsultaDeRanking(sql, "Tendencia Diaria Dulcería");
+    }
+
 
     private double ejecutarConsultaDeSuma(String sql, String contextLog) {
         try {

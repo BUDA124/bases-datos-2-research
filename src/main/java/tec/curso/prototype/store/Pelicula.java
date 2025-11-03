@@ -4,7 +4,12 @@ public class Pelicula {
     private String titulo;
     private double precioEntrada;
 
-    public Pelicula(String laCasaDelTerror, double v) {
+    public Pelicula() {
+    }
+
+    public Pelicula(String titulo, double precioEntrada) {
+        this.titulo = titulo;
+        this.precioEntrada = precioEntrada;
     }
 
     public String getTitulo() {

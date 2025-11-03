@@ -4,19 +4,29 @@ import java.time.Instant;
 
 public class TicketSaleEventDto {
 
-    private String timestamp = Instant.now().toString();
+    private String timestamp;
     private String tituloPelicula;
     private int cantidadTiquetes;
     private double precioUnitario; // Precio por tiquete
     private double ingresoBruto;   // precioUnitario * cantidadTiquetes
 
-    // Constructor, Getters y Setters...
-
     public TicketSaleEventDto(String tituloPelicula, int cantidadTiquetes, double precioUnitario) {
+        this.timestamp = Instant.now().toString();
         this.tituloPelicula = tituloPelicula;
         this.cantidadTiquetes = cantidadTiquetes;
         this.precioUnitario = precioUnitario;
         this.ingresoBruto = cantidadTiquetes * precioUnitario;
+    }
+
+    public TicketSaleEventDto(Instant timestamp, String tituloPelicula, int cantidadTiquetes, double precioUnitario) {
+        this.timestamp = timestamp.toString();
+        this.tituloPelicula = tituloPelicula;
+        this.cantidadTiquetes = cantidadTiquetes;
+        this.precioUnitario = precioUnitario;
+        this.ingresoBruto = cantidadTiquetes * precioUnitario;
+    }
+
+    public TicketSaleEventDto() {
     }
 
     public String getTimestamp() {
