@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import tec.curso.prototype.services.SalesAreaService;
 
 @RestController
-@RequestMapping("/api/simulacion") // Cambiamos el nombre para que sea más claro
+@RequestMapping("/api/simulacion")
 public class IngestionController {
 
     private final SalesAreaService salesAreaService;

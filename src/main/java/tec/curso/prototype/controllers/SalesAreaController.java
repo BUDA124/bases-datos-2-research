@@ -15,7 +15,7 @@ import tec.curso.prototype.services.SalesAreaService;
 import java.io.IOException;
 
 @Component
-public class SalesArea {
+public class SalesAreaController {
 
     @Autowired
     private SalesAreaService salesAreaService;
