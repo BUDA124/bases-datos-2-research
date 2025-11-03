@@ -3,70 +3,91 @@ package tec.curso.prototype.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tec.curso.prototype.dto.VentaDto;
-import tec.curso.prototype.dto.VentaFuncionDto;
-import tec.curso.prototype.dto.VentaPeliculaDto;
-import tec.curso.prototype.dto.VentaProductoDto;
-import tec.curso.prototype.services.FinancialService;
-import tec.curso.prototype.services.InventoryService;
-import tec.curso.prototype.services.MovieSalesService;
-import tec.curso.prototype.services.ShowtimeService;
+import tec.curso.prototype.services.SalesAreaService;
 
-/**
- * Controlador REST para manejar las simulaciones de ventas.
- * Cada endpoint corresponde a un módulo de simulación y utiliza un servicio de negocio especializado.
- */
 @RestController
-@RequestMapping("/api/simulacion")
+@RequestMapping("/api/simulacion") // Cambiamos el nombre para que sea más claro
 public class IngestionController {
 
-    // Inyección de los servicios de negocio especializados en lugar de uno solo.
-    private final FinancialService financialService;
-    private final MovieSalesService movieSalesService;
-    private final ShowtimeService showtimeService;
-    private final InventoryService inventoryService;
+    private final SalesAreaService salesAreaService;
 
     @Autowired
-    public IngestionController(
-            FinancialService financialService,
-            MovieSalesService movieSalesService,
-            ShowtimeService showtimeService,
-            InventoryService inventoryService) {
-        this.financialService = financialService;
-        this.movieSalesService = movieSalesService;
-        this.showtimeService = showtimeService;
-        this.inventoryService = inventoryService;
+    public IngestionController(SalesAreaService salesAreaService) {
+        this.salesAreaService = salesAreaService;
     }
 
-    // Endpoint para "Pulso Financiero del Día"
-    @PostMapping("/venta-financiera")
-    public ResponseEntity<String> registrarVentaFinanciera(@RequestBody VentaDto venta) {
-        // Llama al servicio dedicado a la lógica financiera.
-        financialService.registrarVentaFinanciera(venta);
-        return ResponseEntity.ok("Venta financiera registrada con éxito.");
+    // Endpoint para la venta de tiquetes (Taquilla)
+    @PostMapping("/ticket-sale")
+    public ResponseEntity<String> simularVentaTaquilla(@RequestBody TicketSaleRequest request) {
+        // Llamamos al método correcto del servicio con los datos simples
+        boolean exito = salesAreaService.registrarVentaTiquete(
+                request.getTituloPelicula(),
+                request.getCantidad()
+        );
+
+        if (exito) {
+            return ResponseEntity.ok("Simulación de Venta de Taquilla procesada con éxito.");
+        } else {
+            return ResponseEntity.badRequest().body("No se pudo procesar la venta (película no encontrada).");
+        }
     }
 
-    // Endpoint para "El Poder de Venta de las Películas"
-    @PostMapping("/venta-por-pelicula")
-    public ResponseEntity<String> registrarVentaPorPelicula(@RequestBody VentaPeliculaDto venta) {
-        // Llama al servicio que maneja las ventas asociadas a películas.
-        movieSalesService.registrarVentaAsociadaAPelicula(venta);
-        return ResponseEntity.ok("Venta por película registrada con éxito.");
+    // Endpoint para la venta de productos (Dulcería)
+    @PostMapping("/product-sale")
+    public ResponseEntity<String> simularVentaDulceria(@RequestBody ProductSaleRequest request) {
+        // Llamamos al método correcto del servicio
+        boolean exito = salesAreaService.registrarVentaProducto(
+                request.getNombreProducto(),
+                request.getCantidad()
+        );
+
+        if (exito) {
+            return ResponseEntity.ok("Simulación de Venta de Producto procesada con éxito.");
+        } else {
+            return ResponseEntity.badRequest().body("No se pudo procesar la venta (stock insuficiente o producto no encontrado).");
+        }
     }
 
-    // Endpoint para "Ocupación y Oportunidad por Función"
-    @PostMapping("/venta-entradas")
-    public ResponseEntity<String> registrarVentaEntradas(@RequestBody VentaFuncionDto venta) {
-        // Llama al servicio responsable de la lógica de ocupación de funciones.
-        showtimeService.registrarVentaDeEntradas(venta);
-        return ResponseEntity.ok("Venta de entradas registrada con éxito.");
+    // --- Clases internas para las solicitudes ---
+    public static class TicketSaleRequest {
+        private String tituloPelicula;
+        private int cantidad;
+
+        public String getTituloPelicula() {
+            return tituloPelicula;
+        }
+
+        public void setTituloPelicula(String tituloPelicula) {
+            this.tituloPelicula = tituloPelicula;
+        }
+
+        public int getCantidad() {
+            return cantidad;
+        }
+
+        public void setCantidad(int cantidad) {
+            this.cantidad = cantidad;
+        }
     }
 
-    // Endpoint para "Inventario Inteligente"
-    @PostMapping("/venta-producto")
-    public ResponseEntity<String> registrarVentaProducto(@RequestBody VentaProductoDto venta) {
-        // Llama al servicio que gestiona el inventario.
-        inventoryService.registrarVentaDeProducto(venta);
-        return ResponseEntity.ok("Venta de producto registrada con éxito.");
+    public static class ProductSaleRequest {
+        private String nombreProducto;
+        private int cantidad;
+
+        public String getNombreProducto() {
+            return nombreProducto;
+        }
+
+        public void setNombreProducto(String nombreProducto) {
+            this.nombreProducto = nombreProducto;
+        }
+
+        public int getCantidad() {
+            return cantidad;
+        }
+
+        public void setCantidad(int cantidad) {
+            this.cantidad = cantidad;
+        }
     }
 }

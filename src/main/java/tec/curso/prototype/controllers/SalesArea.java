@@ -10,7 +10,7 @@ import org.controlsfx.control.Notifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tec.curso.prototype.JavaFxApplication;
-import tec.curso.prototype.services.FinancialService;
+import tec.curso.prototype.services.SalesAreaService;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ import java.io.IOException;
 public class SalesArea {
 
     @Autowired
-    private FinancialService financialService; // Inyecta tu servicio de Spring
+    private SalesAreaService salesAreaService;
 
     @FXML
     public void initialize() {

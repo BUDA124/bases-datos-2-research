@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"tec.curso.prototype.services", "tec.curso.prototype.controllers",
-"tec.curso.prototype.services", "tec.curso.prototype.repositories"})
+"tec.curso.prototype.services", "tec.curso.prototype.repositories", "tec.curso.prototype.store"})
 public class ApplicationRunner {
 
     public static void main(String[] args) {

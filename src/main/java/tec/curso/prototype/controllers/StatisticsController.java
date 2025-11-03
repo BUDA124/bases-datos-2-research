@@ -4,14 +4,14 @@ import javafx.fxml.FXML;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tec.curso.prototype.JavaFxApplication;
-import tec.curso.prototype.services.MovieSalesService;
+import tec.curso.prototype.services.StatisticsService;
 
 import java.io.IOException;
 
 @Component
 public class StatisticsController {
     @Autowired
-    private MovieSalesService movieSalesService; // Inyecta tu servicio de Spring
+    private StatisticsService statisticsService; // Inyecta tu servicio de Spring
 
     @FXML
     public void initialize() {

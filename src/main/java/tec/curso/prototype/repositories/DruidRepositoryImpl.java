@@ -1,6 +1,8 @@
 package tec.curso.prototype.repositories;
 
 import org.springframework.stereotype.Repository;
+import tec.curso.prototype.dto.ProductSaleEventDto;
+import tec.curso.prototype.dto.TicketSaleEventDto;
 
 import java.io.IOException;
 import java.net.URI;
@@ -68,5 +70,31 @@ public class DruidRepositoryImpl implements DruidRepository {
             Thread.currentThread().interrupt();
             return "[]";
         }
+    }
+
+    @Override
+    public void ingestTicketSale(TicketSaleEventDto event) {
+        String sql = String.format(
+                "INSERT INTO \"ventas_taquilla\" (\"timestamp\", titulo_pelicula, cantidad_tiquetes, ingreso_bruto) " +
+                        "VALUES ('%s', '%s', %d, %.2f)",
+                event.getTimestamp(),
+                event.getTituloPelicula(),
+                event.getCantidadTiquetes(),
+                event.getIngresoBruto()
+        );
+        ingerirDatos(sql);
+    }
+
+    @Override
+    public void ingestProductSale(ProductSaleEventDto event) {
+        String sql = String.format(
+                "INSERT INTO \"ventas_dulceria\" (\"timestamp\", nombre_producto, cantidad_vendida, ingreso_bruto) " +
+                        "VALUES ('%s', '%s', %d, %.2f)",
+                event.getTimestamp(),
+                event.getNombreProducto(),
+                event.getCantidadVendida(),
+                event.getIngresoBruto()
+        );
+        ingerirDatos(sql);
     }
 }
