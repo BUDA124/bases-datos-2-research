@@ -15,7 +15,8 @@ public interface DruidRepository {
      * @return una cadena de texto (String) con la respuesta en formato JSON de Druid.
      */
     String consultarDatos(String sql);
-
     void ingestProductSale(ProductSaleEventDto event);
     void ingestTicketSale(TicketSaleEventDto event);
+    String submitBatchIngestionTask(String specJson);
+    String getTaskStatus(String taskId);
 }

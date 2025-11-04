@@ -25,6 +25,7 @@ public class IngestionController {
                 request.getCantidad()
         );
 
+
         if (exito) {
             return ResponseEntity.ok("Simulación de Venta de Taquilla procesada con éxito.");
         } else {

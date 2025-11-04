@@ -27,7 +27,7 @@ public class JavaFxApplication extends Application {
     public void start(Stage stage) throws IOException {
         primaryStage = stage;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(ApplicationRunner.class.getResource("Welcome.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ApplicationRunner.class.getResource("SalesArea.fxml"));
         fxmlLoader.setControllerFactory(applicationContext::getBean);
 
         Parent root = fxmlLoader.load();

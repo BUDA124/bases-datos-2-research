@@ -13,12 +13,17 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Repository
 public class DruidRepositoryImpl implements DruidRepository {
 
     @Value("${druid.url}")
     private String druidUrl;
+    @Value("${druid.coordinator.url}")
+    private String druidCoordinatorUrl;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
@@ -29,7 +34,7 @@ public class DruidRepositoryImpl implements DruidRepository {
         try {
             String endpoint = druidUrl + "/druid/v2/sql/task";
             String jsonPayload = String.format(
-                    "{\"query\": \"%s\", \"context\": {\"maxNumTasks\": 2}}",
+                    "{\"query\": \"%s\"}",
                     escapeJson(sql)
             );
 
@@ -51,6 +56,57 @@ public class DruidRepositoryImpl implements DruidRepository {
             System.err.println("Excepción al enviar tarea de ingesta a Druid: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String submitBatchIngestionTask(String specJson) {
+        try {
+            String endpoint = druidCoordinatorUrl + "/druid/indexer/v1/task";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(specJson))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(response.body());
+                String taskId = root.get("task").asText();
+                System.out.println("Tarea de ingesta enviada con éxito. Task ID: " + taskId);
+                return taskId;
+            } else {
+                System.err.println("Error al enviar la tarea de ingesta. Status: " + response.statusCode());
+                System.err.println("Respuesta: " + response.body());
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // CAMBIO 2: Implementa el nuevo método de consulta de estado
+    @Override
+    public String getTaskStatus(String taskId) {
+        if (taskId == null) return "FAILED";
+        try {
+            String endpoint = druidCoordinatorUrl + "/druid/indexer/v1/task/" + taskId + "/status";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonNode root = objectMapper.readTree(response.body());
+                return root.path("status").path("status").asText("UNKNOWN"); // Devuelve "RUNNING", "SUCCESS", "FAILED"
+            }
+        } catch (Exception e) {
+            System.err.println("Error al consultar el estado de la tarea " + taskId);
+        }
+        return "UNKNOWN";
     }
 
     @Override

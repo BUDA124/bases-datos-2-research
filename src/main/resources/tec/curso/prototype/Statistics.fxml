@@ -8,7 +8,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="700.0" maxWidth="1200.0" minHeight="700.0" minWidth="1200.0" prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tec.curso.prototype.controllers.StatisticsController">
+<AnchorPane maxHeight="700.0" maxWidth="1200.0" minHeight="700.0" minWidth="1200.0" prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tec.curso.prototype.controllers.StatisticsController">
    <children>
       <AnchorPane maxHeight="150.0" maxWidth="1200.0" minHeight="150.0" minWidth="1200.0" prefHeight="150.0" prefWidth="1200.0" style="-fx-background-color: #ff5f1f;">
          <children>
@@ -17,7 +17,7 @@
                   <Image url="@../../../images/LogoCine.png" />
                </image>
             </ImageView>
-            <Text layoutX="288.0" layoutY="95.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Sales" wrappingWidth="123.896484375">
+            <Text layoutX="288.0" layoutY="95.0" onMouseClicked="#changeSceneSales" strokeType="OUTSIDE" strokeWidth="0.0" text="Sales" wrappingWidth="123.896484375">
                <font>
                   <Font name="Leelawadee UI Bold" size="48.0" />
                </font>
@@ -27,7 +27,7 @@
                   <Font name="Leelawadee UI Bold" size="48.0" />
                </font>
             </Text>
-            <Text layoutX="882.0" layoutY="94.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Inventory" wrappingWidth="234.0">
+            <Text layoutX="882.0" layoutY="94.0" onMouseClicked="#changeSceneInven" strokeType="OUTSIDE" strokeWidth="0.0" text="Inventory" wrappingWidth="234.0">
                <font>
                   <Font name="Leelawadee UI Bold" size="48.0" />
                </font>

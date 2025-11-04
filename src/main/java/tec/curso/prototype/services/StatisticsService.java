@@ -22,64 +22,42 @@ public class StatisticsService {
         this.druidRepository = druidRepository;
     }
 
-    /**
-     * Obtiene el ingreso total de la taquilla.
-     */
     public double obtenerTotalIngresosTaquilla() {
-        String sql = "SELECT SUM(ingreso_bruto) AS total FROM \"ventas_taquilla\"";
+        String sql = "SELECT SUM(\"ingresoBruto\") AS total FROM \"ventas_taquilla\"";
         return ejecutarConsultaDeSuma(sql, "Total Taquilla");
     }
 
-    /**
-     * Obtiene el ingreso total de la dulcería.
-     */
     public double obtenerTotalIngresosDulceria() {
-        String sql = "SELECT SUM(ingreso_bruto) AS total FROM \"ventas_dulceria\"";
+        String sql = "SELECT SUM(\"ingresoBruto\") AS total FROM \"ventas_dulceria\"";
         return ejecutarConsultaDeSuma(sql, "Total Dulcería");
     }
 
-    /**
-     * Obtiene el ranking de las 5 películas más vistas.
-     */
     public List<Map<String, Object>> obtenerRankingPeliculas() {
-        String sql = "SELECT titulo_pelicula, SUM(cantidad_tiquetes) AS total_espectadores " +
+        String sql = "SELECT \"tituloPelicula\", SUM(\"cantidadTiquetes\") AS total_espectadores " +
                 "FROM \"ventas_taquilla\" " +
                 "GROUP BY 1 ORDER BY 2 DESC LIMIT 5";
         return ejecutarConsultaDeRanking(sql, "Ranking Películas");
     }
 
-    /**
-     * Obtiene el ranking de los 5 productos más vendidos.
-     */
     public List<Map<String, Object>> obtenerRankingProductos() {
-        String sql = "SELECT nombre_producto, SUM(cantidad_vendida) AS total_vendido " +
+        String sql = "SELECT \"nombreProducto\", SUM(\"cantidadVendida\") AS total_vendido " +
                 "FROM \"ventas_dulceria\" " +
                 "GROUP BY 1 ORDER BY 2 DESC LIMIT 5";
         return ejecutarConsultaDeRanking(sql, "Ranking Productos");
     }
 
-    /**
-     * NUEVO: Obtiene los ingresos diarios de taquilla para un gráfico de tendencias.
-     * @param dias El número de días hacia atrás a consultar.
-     * @return Una lista de mapas con "dia" y "ingresos".
-     */
     public List<Map<String, Object>> obtenerIngresosDiariosTaquilla(int dias) {
         String sql = String.format(
-                "SELECT TIME_FLOOR(__time, 'P1D') AS dia, SUM(ingreso_bruto) AS ingresos " +
+                "SELECT TIME_FLOOR(__time, 'P1D') AS dia, SUM(\"ingresoBruto\") AS ingresos " +
                         "FROM \"ventas_taquilla\" " +
                         "WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '%d' DAY " +
                         "GROUP BY 1 ORDER BY 1", dias);
         return ejecutarConsultaDeRanking(sql, "Tendencia Diaria Taquilla");
     }
 
-    /**
-     * NUEVO: Obtiene los ingresos diarios de dulcería para un gráfico de tendencias.
-     * @param dias El número de días hacia atrás a consultar.
-     * @return Una lista de mapas con "dia" y "ingresos".
-     */
     public List<Map<String, Object>> obtenerIngresosDiariosDulceria(int dias) {
         String sql = String.format(
-                "SELECT TIME_FLOOR(__time, 'P1D') AS dia, SUM(ingreso_bruto) AS ingresos " +
+                "SELECT TIME_FLOOR(__time, 'P1D') AS dia, SUM(\"ingresoBruto\") AS ingresos " +
                         "FROM \"ventas_dulceria\" " +
                         "WHERE __time >= CURRENT_TIMESTAMP - INTERVAL '%d' DAY " +
                         "GROUP BY 1 ORDER BY 1", dias);
@@ -108,5 +86,29 @@ public class StatisticsService {
             System.err.println("Error al procesar consulta de ranking para [" + contextLog + "]: " + e.getMessage());
         }
         return Collections.emptyList();
+    }
+
+    public String obtenerJsonTotalIngresosTaquilla() {
+        String sql = "SELECT SUM(\"ingresoBruto\") AS total FROM \"ventas_taquilla\"";
+        return druidRepository.consultarDatos(sql);
+    }
+
+    public String obtenerJsonTotalIngresosDulceria() {
+        String sql = "SELECT SUM(\"ingresoBruto\") AS total FROM \"ventas_dulceria\"";
+        return druidRepository.consultarDatos(sql);
+    }
+
+    public String obtenerJsonRankingPeliculas() {
+        String sql = "SELECT \"tituloPelicula\", SUM(\"cantidadTiquetes\") AS total_espectadores " +
+                "FROM \"ventas_taquilla\" " +
+                "GROUP BY 1 ORDER BY 2 DESC LIMIT 5";
+        return druidRepository.consultarDatos(sql);
+    }
+
+    public String obtenerJsonRankingProductos() {
+        String sql = "SELECT \"nombreProducto\", SUM(\"cantidadVendida\") AS total_vendido " +
+                "FROM \"ventas_dulceria\" " +
+                "GROUP BY 1 ORDER BY 2 DESC LIMIT 5";
+        return druidRepository.consultarDatos(sql);
     }
 }

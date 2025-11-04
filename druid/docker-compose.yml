@@ -16,20 +16,20 @@ services:
     volumes:
       - metadata_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=FoolishPassword
-      - POSTGRES_USER=druid
-      - POSTGRES_DB=druid
+      POSTGRES_PASSWORD: FoolishPassword
+      POSTGRES_USER: druid
+      POSTGRES_DB: druid
 
   zookeeper:
     container_name: zookeeper
-    image: zookeeper:3.5.10
+    image: zookeeper:3.8
     ports:
       - "2181:2181"
     environment:
-      - ZOO_MY_ID=1
+      ZOO_MY_ID: 1
 
   coordinator:
-    image: apache/druid:34.0.0
+    image: apache/druid:29.0.0
     container_name: coordinator
     volumes:
       - druid_shared:/opt/shared
@@ -43,14 +43,13 @@ services:
       - coordinator
     env_file:
       - environment
-    # --- MEMORIA PARA EL COORDINATOR ---
     environment:
-      - DRUID_XMS=2g
-      - DRUID_XMX=2g
-      - DRUID_MAXDIRECTMEMORYSIZE=2g
+      DRUID_XMS: 2g
+      DRUID_XMX: 2g
+      DRUID_MAXDIRECTMEMORYSIZE: 2g
 
   broker:
-    image: apache/druid:34.0.0
+    image: apache/druid:29.0.0
     container_name: broker
     volumes:
       - broker_var:/opt/druid/var
@@ -64,14 +63,13 @@ services:
       - broker
     env_file:
       - environment
-    # --- MEMORIA PARA EL BROKER ---
     environment:
-      - DRUID_XMS=2g
-      - DRUID_XMX=2g
-      - DRUID_MAXDIRECTMEMORYSIZE=2g
+      DRUID_XMS: 2g
+      DRUID_XMX: 2g
+      DRUID_MAXDIRECTMEMORYSIZE: 2g
 
   historical:
-    image: apache/druid:34.0.0
+    image: apache/druid:29.0.0
     container_name: historical
     volumes:
       - druid_shared:/opt/shared
@@ -86,9 +84,13 @@ services:
       - historical
     env_file:
       - environment
+    environment:
+      DRUID_XMS: 2g
+      DRUID_XMX: 2g
+      DRUID_MAXDIRECTMEMORYSIZE: 2g
 
   middlemanager:
-    image: apache/druid:34.0.0
+    image: apache/druid:29.0.0
     container_name: middlemanager
     volumes:
       - druid_shared:/opt/shared
@@ -104,13 +106,15 @@ services:
       - middleManager
     env_file:
       - environment
-    # --- MEMORIA Y CAPACIDAD PARA EL MIDDLEMANAGER ---
     environment:
-      - druid_worker_capacity=3
-      - druid_indexer_runner_javaOpts=-server -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g
+      druid_worker_capacity: 3
+      druid_indexer_runner_javaOpts: "-server -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g"
+      DRUID_XMS: 1g
+      DRUID_XMX: 1g
+      DRUID_MAXDIRECTMEMORYSIZE: 1g
 
   router:
-    image: apache/druid:34.0.0
+    image: apache/druid:29.0.0
     container_name: router
     volumes:
       - router_var:/opt/druid/var
@@ -124,3 +128,7 @@ services:
       - router
     env_file:
       - environment
+    environment:
+      DRUID_XMS: 1g
+      DRUID_XMX: 1g
+      DRUID_MAXDIRECTMEMORYSIZE: 1g

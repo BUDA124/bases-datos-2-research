@@ -6,122 +6,145 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.control.Notifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tec.curso.prototype.JavaFxApplication;
+import tec.curso.prototype.store.InMemoryDataStore;
 import tec.curso.prototype.services.SalesAreaService;
+import tec.curso.prototype.store.Pelicula;
+import tec.curso.prototype.store.Producto;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class SalesAreaController {
 
     @Autowired
-    private SalesAreaService salesAreaService; // Inyecta tu servicio de Spring
+    private SalesAreaService salesAreaService;
+    @Autowired
+    private InMemoryDataStore dataStore;
+
+    @FXML private VBox ticketsContainer;
+    @FXML private VBox foodContainer;
 
     @FXML
-    private VBox ticketsContainer;
-
+    private Text TextStatistics;
     @FXML
-    private VBox foodContainer;
+    private Text TextInventory;
 
     @FXML
     public void initialize() {
-
-        // Ejemplo: listas de productos
-        String[] tickets = {"Star Wars Ticket", "Home Alone Ticket", "The Godfather Ticket"};
-        String[] foodItems = {"Popcorn", "Soda", "Nachos"};
+        // Carga los productos y películas desde el almacén central
+        List<Pelicula> peliculas = dataStore.findAllMovies();
+        List<Producto> productos = dataStore.findAllProducts();
 
         // Cargar los ítems dinámicamente
-        loadItems(ticketsContainer, tickets);
-        loadItems(foodContainer, foodItems);
-
-        // Se llama al cargar la vista.
-        // Carga los datos iniciales desde el dashboardService y actualiza los labels y el gráfico.
-        // actualizarDatos();
+        loadMovieItems(ticketsContainer, peliculas);
+        loadProductItems(foodContainer, productos);
     }
 
-    private void loadItems(VBox container, String[] items) {
+    private void loadMovieItems(VBox container, List<Pelicula> items) {
+        setupContainer(container);
+        for (Pelicula item : items) {
+            container.getChildren().add(createItemRow(item.getTitulo()));
+        }
+    }
+
+    private void loadProductItems(VBox container, List<Producto> items) {
+        setupContainer(container);
+        for (Producto item : items) {
+            container.getChildren().add(createItemRow(item.getNombre()));
+        }
+    }
+
+    private void setupContainer(VBox container) {
+        container.getChildren().clear();
         container.setFillWidth(false);
         container.setAlignment(Pos.CENTER);
         container.setSpacing(10);
-
-
-        for (String item : items) {
-            HBox row = new HBox(10);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setStyle("-fx-padding: 5; -fx-background-color: #ffffff; -fx-background-radius: 5;");
-
-            row.setPrefWidth(400);
-            row.setMaxWidth(400);
-
-            Label name = new Label(item);
-            name.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333333;");
-
-            Spinner<Integer> spinner = new Spinner<>(0, 10, 0);
-
-            row.getChildren().addAll(name, spinner);
-            container.getChildren().add(row);
-        }
     }
-    /**
-     * This method is now designed to be called by a button's onAction event.
-     * It simulates registering a sale and then shows a confirmation notification.
-     *
-     * @param event The ActionEvent triggered by the UI component (e.g., a button click).
-     */
+
+    private HBox createItemRow(String itemName) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setStyle("-fx-padding: 10; -fx-background-color: #ffffff; -fx-background-radius: 5;"); // Padding aumentado de 5 a 10
+        row.setPrefWidth(450); // Ancho aumentado de 400 a 450
+
+        Label name = new Label(itemName);
+        name.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333333;"); // Tamaño de fuente aumentado de 16px a 18px
+
+        Spinner<Integer> spinner = new Spinner<>(0, 10, 0);
+        spinner.setPrefSize(100, 40); // Se define un tamaño preferido para el control
+
+        row.getChildren().addAll(name, spinner);
+        return row;
+    }
+
     @FXML
     private void registerSale(ActionEvent event) {
-
-        boolean anySelected = hasSelectedItems(ticketsContainer) || hasSelectedItems(foodContainer);
-        if (!anySelected) {
-            Notifications.create()
-                    .title("No Sale")
-                    .text("Please select at least one item before registering a sale.")
-                    .position(Pos.BOTTOM_LEFT)
-                    .hideAfter(Duration.seconds(3))
-                    .owner(getStageFromEvent(event))
-                    .showWarning();
+        if (!hasSelectedItems(ticketsContainer) && !hasSelectedItems(foodContainer)) {
+            showNotification(event, "No Sale", "Please select at least one item.", false);
             return;
         }
 
-        // TODO: Add the business logic here to save the sale data.
-        processSale(ticketsContainer);
-        processSale(foodContainer);
-        // Example:
-        // String product = productTextField.getText();
-        // double amount = Double.parseDouble(amountTextField.getText());
-        // financialService.saveSale(product, amount);
+        // Llama a la lógica de negocio para procesar las ventas
+        processSales(ticketsContainer, "TICKET");
+        processSales(foodContainer, "PRODUCT");
 
-        Notifications.create()
-                .title("Sale Registered")
-                .text("The new sale has been added successfully.")
-                .position(Pos.BOTTOM_LEFT)
-                .hideAfter(Duration.seconds(5)) // Auto-hide after 5 seconds
-                .owner(getStageFromEvent(event)) // Attach to the correct window
-                .showConfirm(); // Display with a confirmation icon
+        showNotification(event, "Sale Registered", "The new sale has been added successfully.", true);
+
         clearSpinners(ticketsContainer);
         clearSpinners(foodContainer);
     }
 
-    private void processSale(VBox container) {
+    private void processSales(VBox container, String saleType) {
         for (Node node : container.getChildren()) {
             if (node instanceof HBox row) {
-                Label name = (Label) row.getChildren().get(0);
+                Label nameLabel = (Label) row.getChildren().get(0);
                 Spinner<Integer> spinner = (Spinner<Integer>) row.getChildren().get(1);
-
                 int quantity = spinner.getValue();
+
                 if (quantity > 0) {
-                    System.out.println("Sold " + quantity + " of " + name.getText());
-                    // Aquí puedes llamar a tu FinancialService:
-                    // financialService.registerSale(name.getText(), quantity);
+                    String itemName = nameLabel.getText();
+                    boolean success;
+
+                    if ("TICKET".equals(saleType)) {
+                        success = salesAreaService.registrarVentaTiquete(itemName, quantity);
+                    } else { // "PRODUCT"
+                        success = salesAreaService.registrarVentaProducto(itemName, quantity);
+                    }
+
+                    if (success) {
+                        System.out.println("Venta registrada: " + quantity + " de " + itemName);
+                    } else {
+                        System.err.println("Falló la venta de: " + quantity + " de " + itemName + " (no encontrado o sin stock)");
+                    }
                 }
             }
+        }
+    }
+
+    // --- Métodos de utilidad (helper) ---
+    private void showNotification(ActionEvent event, String title, String text, boolean isConfirm) {
+        Notifications notification = Notifications.create()
+                .title(title)
+                .text(text)
+                .position(Pos.BOTTOM_LEFT)
+                .hideAfter(Duration.seconds(5))
+                .owner(getStageFromEvent(event));
+
+        if (isConfirm) {
+            notification.showConfirm();
+        } else {
+            notification.showWarning();
         }
     }
 
@@ -144,16 +167,17 @@ public class SalesAreaController {
         return false;
     }
 
-    private void actualizarDatos() {
-        // TODO
+    private Stage getStageFromEvent(ActionEvent event) {
+        return (Stage) ((Node) event.getSource()).getScene().getWindow();
     }
 
     @FXML
-    private void action() throws IOException {
-        JavaFxApplication.changeScene("SingUp.fxml");
+    private void changeSceneStats(MouseEvent event) throws IOException {
+        JavaFxApplication.changeScene("Statistics.fxml");
     }
 
-    private Stage getStageFromEvent(ActionEvent event) {
-        return (Stage) ((Node) event.getSource()).getScene().getWindow();
+    @FXML
+    private void changeSceneInven(MouseEvent event) throws IOException {
+        JavaFxApplication.changeScene("SmartInventory.fxml");
     }
 }

@@ -1,6 +1,7 @@
 package tec.curso.prototype.controllers;
 
 import javafx.collections.FXCollections;
+import javafx.scene.input.MouseEvent;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -8,31 +9,34 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tec.curso.prototype.JavaFxApplication;
+import tec.curso.prototype.store.InMemoryDataStore;
+import tec.curso.prototype.store.Producto;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class SmartInventoryController {
+
+    @Autowired
+    private InMemoryDataStore dataStore;
 
     // ==== FXML ELEMENTS ====
     @FXML private VBox inventoryContainer;
     @FXML private VBox updateProductContainer;
     @FXML private ChoiceBox<String> updateItemSelect;
     @FXML private Button updateItemButton;
-
     @FXML private VBox createProductContainer;
     @FXML private TextField productNameField;
     @FXML private TextField availabilityField;
     @FXML private TextField minField;
     @FXML private TextField priceField;
-    @FXML private Button addItemButton;
-
-    // ==== DATA STRUCTURE ====
-    private final List<Product> products = new ArrayList<>();
 
     // Campos dinámicos para update
     private TextField availableFieldUpdate;
@@ -41,16 +45,10 @@ public class SmartInventoryController {
 
     @FXML
     public void initialize() {
-        // Productos iniciales
-        products.add(new Product("Palomitas Grandes", 340, 40, 10));
-        products.add(new Product("Refresco Mediano", 1000, 100, 4));
-        products.add(new Product("Nachos con Queso", 100, 10, 8));
-        products.add(new Product("Donas", 100, 10, 8));
-
+        // Carga los datos desde el almacén central al iniciar
         refreshInventoryDisplay();
         refreshChoiceBox();
 
-        // Detectar selección en el ChoiceBox
         updateItemSelect.getSelectionModel().selectedItemProperty().addListener((obs, old, newVal) -> {
             if (newVal != null) {
                 showUpdateFieldsForProduct(newVal);
@@ -58,94 +56,65 @@ public class SmartInventoryController {
         });
     }
 
-    // ==== MUESTRA LOS PRODUCTOS EN EL INVENTARIO ====
     private void refreshInventoryDisplay() {
         inventoryContainer.getChildren().clear();
-
-        // 🔹 Asegura que el VBox permita que los hijos se expandan horizontalmente
         inventoryContainer.setFillWidth(true);
 
-        // 🔹 Agrega el título al inicio
         Label title = new Label("List of Items");
         title.setFont(Font.font("Leelawadee UI", 36));
         title.setStyle("-fx-font-weight: bold;");
         title.setTextFill(Color.WHITE);
         title.setAlignment(Pos.CENTER);
-        title.setMaxWidth(Double.MAX_VALUE); // Centra el texto
+        title.setMaxWidth(Double.MAX_VALUE);
+        title.setWrapText(true); // MODIFICACIÓN: Permite que el texto del título se ajuste si es necesario.
         inventoryContainer.getChildren().add(title);
 
-        for (int i = 0; i < products.size(); i++) {
-            Product p = products.get(i);
+        List<Producto> liveProducts = dataStore.findAllProducts();
 
-            HBox row = new HBox();
+        for (int i = 0; i < liveProducts.size(); i++) {
+            Producto p = liveProducts.get(i);
+            HBox row = new HBox(10);
             row.setSpacing(10);
             row.setPadding(new Insets(10, 20, 10, 20));
             row.setAlignment(Pos.CENTER);
             row.setStyle("-fx-background-color: #31446b; -fx-background-radius: 8;");
-
-            // 🔹 Ajuste automático del ancho
             row.setMaxWidth(Double.MAX_VALUE);
-
-            // 🔹 Esto hace que el HBox crezca dentro del VBox
             VBox.setVgrow(row, javafx.scene.layout.Priority.ALWAYS);
 
             Label label = new Label(
                     String.format("%d. %s | Unidades Disponibles: %d | Mínimo sugerido: %d | Precio ($): %.2f",
-                            i + 1, p.getName(), p.getAvailableUnits(), p.getMinSuggested(), p.getPrice())
+                            i + 1, p.getNombre(), p.getUnidadesDisponibles(), p.getMinimoSugerido(), p.getPrecio())
             );
             label.setFont(Font.font("Leelawadee UI", 15));
             label.setTextFill(Color.WHITE);
+            label.setWrapText(true); // MODIFICACIÓN: Permite que el texto de la fila se ajuste para no desbordar la pantalla.
 
             row.getChildren().add(label);
             inventoryContainer.getChildren().add(row);
         }
     }
 
-
-    // ==== ACTUALIZA LOS ITEMS DEL CHOICEBOX ====
     private void refreshChoiceBox() {
-        List<String> names = new ArrayList<>();
-        for (Product p : products) {
-            names.add(p.getName());
-        }
+        List<String> names = dataStore.findAllProducts().stream()
+                .map(Producto::getNombre)
+                .collect(Collectors.toList());
         updateItemSelect.setItems(FXCollections.observableArrayList(names));
     }
 
-    // ==== MUESTRA CAMPOS PARA EDITAR UN PRODUCTO ====
     private void showUpdateFieldsForProduct(String productName) {
-        // Elimina los HBox antiguos antes del botón
-        updateProductContainer.getChildren().removeIf(node -> node instanceof HBox && node != updateItemButton.getParent());
-
-        Product selected = findProductByName(productName);
+        clearUpdateFields(); // Limpia campos anteriores
+        Producto selected = dataStore.findProductByName(productName);
         if (selected == null) return;
 
-        availableFieldUpdate = createEditableField("Unidades Disponibles:", String.valueOf(selected.getAvailableUnits()));
-        minFieldUpdate = createEditableField("Mínimo Sugerido:", String.valueOf(selected.getMinSuggested()));
-        priceFieldUpdate = createEditableField("Precio ($):", String.valueOf(selected.getPrice()));
+        availableFieldUpdate = createEditableField("Unidades Disponibles:", String.valueOf(selected.getUnidadesDisponibles()));
+        minFieldUpdate = createEditableField("Mínimo Sugerido:", String.valueOf(selected.getMinimoSugerido()));
+        priceFieldUpdate = createEditableField("Precio ($):", String.valueOf(selected.getPrecio()));
 
-        // Inserta los nuevos campos antes del botón
         updateProductContainer.getChildren().add(updateProductContainer.getChildren().size() - 1, availableFieldUpdate.getParent());
         updateProductContainer.getChildren().add(updateProductContainer.getChildren().size() - 1, minFieldUpdate.getParent());
         updateProductContainer.getChildren().add(updateProductContainer.getChildren().size() - 1, priceFieldUpdate.getParent());
     }
 
-    private TextField createEditableField(String labelText, String value) {
-        HBox hbox = new HBox();
-        hbox.setSpacing(10);
-        hbox.setPadding(new Insets(10, 20, 10, 20));
-
-        Label label = new Label(labelText);
-        label.setTextFill(Color.WHITE);
-        label.setFont(Font.font("Leelawadee UI Bold", 18));
-
-        TextField field = new TextField(value);
-        field.setPrefWidth(150);
-
-        hbox.getChildren().addAll(label, field);
-        return field;
-    }
-
-    // ==== BOTÓN "ACTUALIZAR PRODUCTO" ====
     @FXML
     public void updateItem(ActionEvent event) {
         String selectedName = updateItemSelect.getValue();
@@ -154,13 +123,16 @@ public class SmartInventoryController {
             return;
         }
 
-        Product p = findProductByName(selectedName);
+        Producto p = dataStore.findProductByName(selectedName);
         if (p == null) return;
 
         try {
-            p.setAvailableUnits(Integer.parseInt(availableFieldUpdate.getText()));
-            p.setMinSuggested(Integer.parseInt(minFieldUpdate.getText()));
-            p.setPrice(Double.parseDouble(priceFieldUpdate.getText()));
+            p.setUnidadesDisponibles(Integer.parseInt(availableFieldUpdate.getText()));
+            p.setMinimoSugerido(Integer.parseInt(minFieldUpdate.getText()));
+            p.setPrecio(Double.parseDouble(priceFieldUpdate.getText()));
+
+            dataStore.updadteExistingProduct(p);
+
         } catch (NumberFormatException e) {
             showAlert("Por favor ingrese valores válidos (numéricos).");
             return;
@@ -168,25 +140,10 @@ public class SmartInventoryController {
 
         showAlert("Producto actualizado exitosamente ✅");
         refreshInventoryDisplay();
-
-        // 🔹 Limpia los campos de actualización, pero conserva ChoiceBox y botón
-        updateProductContainer.getChildren().clear();
-
-        // 🔹 Recrea los elementos iniciales del panel
-        Label titleLabel = new Label("Update Item");
-        titleLabel.setFont(Font.font("Leelawadee UI Bold", 36));
-        titleLabel.setTextFill(Color.WHITE);
-
-        updateProductContainer.getChildren().add(titleLabel);
-        updateProductContainer.getChildren().add(updateItemSelect);
-        updateProductContainer.getChildren().add(updateItemButton);
-
-        // 🔹 Limpia la selección del ChoiceBox (para que se pueda volver a usar)
-        updateItemSelect.getSelectionModel().clearSelection();
+        refreshChoiceBox();
+        clearUpdateFields();
     }
 
-
-    // ==== BOTÓN "AGREGAR PRODUCTO" ====
     @FXML
     public void addItem(ActionEvent event) {
         try {
@@ -200,11 +157,12 @@ public class SmartInventoryController {
                 return;
             }
 
-            products.add(new Product(name, available, min, price));
+            Producto newProduct = new Producto(name, available, min, price);
+            dataStore.createNewProduct(newProduct);
+
             refreshInventoryDisplay();
             refreshChoiceBox();
 
-            // Limpia los campos
             productNameField.clear();
             availabilityField.clear();
             minField.clear();
@@ -213,11 +171,28 @@ public class SmartInventoryController {
             showAlert("Producto agregado correctamente ✅");
         } catch (NumberFormatException e) {
             showAlert("Por favor ingrese valores numéricos válidos.");
+        } catch (IllegalArgumentException e) {
+            showAlert(e.getMessage());
         }
     }
 
-    private Product findProductByName(String name) {
-        return products.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
+    // --- Métodos de utilidad (helper) ---
+    private void clearUpdateFields() {
+        updateProductContainer.getChildren().removeIf(node -> node instanceof HBox && node != updateItemButton.getParent());
+        updateItemSelect.getSelectionModel().clearSelection();
+    }
+
+    private TextField createEditableField(String labelText, String value) {
+        HBox hbox = new HBox(10);
+        hbox.setPadding(new Insets(10, 20, 10, 20));
+        Label label = new Label(labelText);
+        label.setTextFill(Color.WHITE);
+        label.setFont(Font.font("Leelawadee UI Bold", 18));
+        label.setWrapText(true); // MODIFICACIÓN: Permite que el texto de la etiqueta se ajuste.
+        TextField field = new TextField(value);
+        field.setPrefWidth(150);
+        hbox.getChildren().addAll(label, field);
+        return field;
     }
 
     private void showAlert(String message) {
@@ -228,27 +203,13 @@ public class SmartInventoryController {
         alert.showAndWait();
     }
 
-    // ==== CLASE PRODUCTO INTERNA ====
-    private static class Product {
-        private String name;
-        private int availableUnits;
-        private int minSuggested;
-        private double price;
+    @FXML
+    private void changeSceneStats(MouseEvent event) throws IOException {
+        JavaFxApplication.changeScene("Statistics.fxml");
+    }
 
-        public Product(String name, int availableUnits, int minSuggested, double price) {
-            this.name = name;
-            this.availableUnits = availableUnits;
-            this.minSuggested = minSuggested;
-            this.price = price;
-        }
-
-        public String getName() { return name; }
-        public int getAvailableUnits() { return availableUnits; }
-        public int getMinSuggested() { return minSuggested; }
-        public double getPrice() { return price; }
-
-        public void setAvailableUnits(int availableUnits) { this.availableUnits = availableUnits; }
-        public void setMinSuggested(int minSuggested) { this.minSuggested = minSuggested; }
-        public void setPrice(double price) { this.price = price; }
+    @FXML
+    private void changeSceneSales(MouseEvent event) throws IOException {
+        JavaFxApplication.changeScene("SalesArea.fxml");
     }
 }

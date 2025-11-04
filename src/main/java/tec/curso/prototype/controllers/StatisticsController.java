@@ -1,13 +1,16 @@
 package tec.curso.prototype.controllers;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,6 +18,10 @@ import tec.curso.prototype.JavaFxApplication;
 import tec.curso.prototype.services.StatisticsService;
 
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Component
 public class StatisticsController {
@@ -22,159 +29,174 @@ public class StatisticsController {
     @Autowired
     private StatisticsService statisticsService;
 
-    // Contenedores definidos en el FXML
-    @FXML
-    private HBox incomeContainer;
+    // --- Componentes FXML ---
+    @FXML private VBox ticketsIncomeContainer;
+    @FXML private VBox foodIncomeContainer;
+    @FXML private VBox movieRankingContainer;
+    @FXML private VBox foodRankingContainer;
 
-    @FXML
-    private VBox ticketsIncomeContainer;
-
-    @FXML
-    private VBox foodIncomeContainer;
-
-    @FXML
-    private VBox movieRankingContainer;
-
-    @FXML
-    private VBox foodRankingContainer;
-
-    // Labels dinámicos (para los totales)
+    // --- Componentes JavaFX creados en código ---
     private Label boxOfficeRevenueLabel;
     private Label concessionsRevenueLabel;
+    private BarChart<String, Number> movieRankingGraph;
+    private BarChart<String, Number> foodRankingGraph;
+
+    // Colores para los gráficos
+    private final String[] CHART_COLORS = {"#ff5f1f", "#ffcc00", "#28a745", "#17a2b8", "#6f42c1"};
 
     @FXML
     public void initialize() {
         setupIncomeSection();
         setupMovieRankingGraph();
         setupFoodRankingGraph();
-
-        // Datos de ejemplo iniciales
-        updateRevenues(15250.50, 8120.00);
-        updateMovieRanking();
-        updateFoodRanking();
+        new Thread(this::loadAndDisplayStatistics).start();
     }
 
-    /** --------------------------- SECCIÓN DE INGRESOS --------------------------- */
+    private void loadAndDisplayStatistics() {
+        double totalTaquilla = statisticsService.obtenerTotalIngresosTaquilla();
+        double totalDulceria = statisticsService.obtenerTotalIngresosDulceria();
+        List<Map<String, Object>> rankingPeliculas = statisticsService.obtenerRankingPeliculas();
+        List<Map<String, Object>> rankingProductos = statisticsService.obtenerRankingProductos();
+
+        Platform.runLater(() -> {
+            updateRevenues(totalTaquilla, totalDulceria);
+            updateMovieRanking(rankingPeliculas);
+            updateFoodRanking(rankingProductos);
+        });
+    }
+
+    /** --------------------------- SECCIÓN DE INGRESOS (Sin cambios) --------------------------- */
     private void setupIncomeSection() {
-        // --- Ingresos de taquilla ---
-        Label boxOfficeTitle = new Label("Total Box Office Revenue:");
-        boxOfficeTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        Label boxOfficeTitle = new Label("Ingresos en Taquilla");
+        boxOfficeTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
         boxOfficeRevenueLabel = new Label("$0.00");
-        boxOfficeRevenueLabel.setStyle("-fx-font-size: 36px; -fx-text-fill: #28a745; -fx-font-weight: bold;");
-
+        boxOfficeRevenueLabel.setStyle("-fx-font-size: 34px; -fx-text-fill: #28a745; -fx-font-weight: bold;");
         ticketsIncomeContainer.getChildren().addAll(boxOfficeTitle, boxOfficeRevenueLabel);
-        ticketsIncomeContainer.setAlignment(Pos.CENTER_LEFT);
+        ticketsIncomeContainer.setAlignment(Pos.CENTER);
         ticketsIncomeContainer.setSpacing(10);
+        ticketsIncomeContainer.setPadding(new Insets(15, 15, 15, 15));
 
-        // --- Ingresos de alimentos ---
-        Label concessionsTitle = new Label("Total Concessions Revenue:");
-        concessionsTitle.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+        Label concessionsTitle = new Label("Ingresos en Dulcería");
+        concessionsTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
         concessionsRevenueLabel = new Label("$0.00");
-        concessionsRevenueLabel.setStyle("-fx-font-size: 36px; -fx-text-fill: #007bff; -fx-font-weight: bold;");
-
+        concessionsRevenueLabel.setStyle("-fx-font-size: 34px; -fx-text-fill: #007bff; -fx-font-weight: bold;");
         foodIncomeContainer.getChildren().addAll(concessionsTitle, concessionsRevenueLabel);
-        foodIncomeContainer.setAlignment(Pos.CENTER_LEFT);
+        foodIncomeContainer.setAlignment(Pos.CENTER);
         foodIncomeContainer.setSpacing(10);
+        foodIncomeContainer.setPadding(new Insets(15, 15, 15, 15));
     }
 
-    public void updateRevenues(double boxOffice, double concessions) {
-        boxOfficeRevenueLabel.setText(String.format("$%,.2f", boxOffice));
-        concessionsRevenueLabel.setText(String.format("$%,.2f", concessions));
+    private void updateRevenues(double boxOffice, double concessions) {
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+        boxOfficeRevenueLabel.setText(currencyFormat.format(boxOffice));
+        concessionsRevenueLabel.setText(currencyFormat.format(concessions));
     }
 
-    /** --------------------------- SECCIÓN GRÁFICO DE PELÍCULAS --------------------------- */
-    private BarChart<String, Number> movieRankingGraph;
-
+    /** --------------------------- GRÁFICO DE PELÍCULAS (Con correcciones) --------------------------- */
     private void setupMovieRankingGraph() {
-        Label title = new Label("🎬 Movie Ranking");
+        Label title = new Label("🎬 Ranking de Películas");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
 
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Películas");
+        // ===== INICIO DE CAMBIOS =====
+        xAxis.setTickLabelsVisible(false); // Oculta las etiquetas de texto del eje X.
+        xAxis.setOpacity(0); // Opcional: Oculta también las marcas del eje.
+        // ===== FIN DE CAMBIOS =====
 
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Espectadores");
+        // ===== INICIO DE CAMBIOS =====
+        yAxis.setPrefWidth(40); // Mantiene el ancho fijo para la alineación.
+        // Se elimina yAxis.setLabel(...) para ocultar la etiqueta.
+        // ===== FIN DE CAMBIOS =====
 
         movieRankingGraph = new BarChart<>(xAxis, yAxis);
-        movieRankingGraph.setPrefHeight(350);
-        movieRankingGraph.setPrefWidth(520);
         movieRankingGraph.setLegendVisible(false);
+        movieRankingGraph.setBarGap(5);
+        movieRankingGraph.setCategoryGap(20);
 
         movieRankingContainer.getChildren().addAll(title, movieRankingGraph);
         movieRankingContainer.setAlignment(Pos.TOP_CENTER);
         movieRankingContainer.setSpacing(10);
+        movieRankingContainer.setPadding(new Insets(15, 15, 15, 15));
+        VBox.setVgrow(movieRankingGraph, Priority.ALWAYS);
     }
 
-    private void updateMovieRanking() {
-        movieRankingGraph.getData().clear();
-
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>("Galaxy Raiders 4", 1200));
-        series.getData().add(new XYChart.Data<>("Amores en París", 750));
-        series.getData().add(new XYChart.Data<>("La Casa del Terror", 500));
-
-        movieRankingGraph.getData().add(series);
-
-        javafx.application.Platform.runLater(() -> {
-            series.getData().get(0).getNode().setStyle("-fx-bar-fill: #ff5f1f;"); // naranja
-            series.getData().get(1).getNode().setStyle("-fx-bar-fill: #ffcc00;"); // amarillo
-            series.getData().get(2).getNode().setStyle("-fx-bar-fill: #ff0000;"); // rojo
-        });
-
-    }
-
-    /** --------------------------- SECCIÓN GRÁFICO DE PRODUCTOS --------------------------- */
-    private BarChart<String, Number> foodRankingGraph;
-
+    /** --------------------------- GRÁFICO DE PRODUCTOS (Con correcciones) --------------------------- */
     private void setupFoodRankingGraph() {
-        Label title = new Label("🍿 Product Ranking");
+        Label title = new Label("🍿 Ranking de Productos");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
 
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Productos");
+        // ===== INICIO DE CAMBIOS =====
+        xAxis.setTickLabelsVisible(false); // Oculta las etiquetas de texto del eje X.
+        xAxis.setOpacity(0); // Opcional: Oculta también las marcas del eje.
+        // ===== FIN DE CAMBIOS =====
 
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Ventas");
+        // ===== INICIO DE CAMBIOS =====
+        yAxis.setPrefWidth(40); // Mantiene el ancho fijo para la alineación.
+        // Se elimina yAxis.setLabel(...) para ocultar la etiqueta.
+        // ===== FIN DE CAMBIOS =====
 
         foodRankingGraph = new BarChart<>(xAxis, yAxis);
-        foodRankingGraph.setPrefHeight(350);
-        foodRankingGraph.setPrefWidth(520);
         foodRankingGraph.setLegendVisible(false);
+        foodRankingGraph.setBarGap(5);
+        foodRankingGraph.setCategoryGap(20);
 
         foodRankingContainer.getChildren().addAll(title, foodRankingGraph);
         foodRankingContainer.setAlignment(Pos.TOP_CENTER);
         foodRankingContainer.setSpacing(10);
+        foodRankingContainer.setPadding(new Insets(15, 15, 15, 15));
+        VBox.setVgrow(foodRankingGraph, Priority.ALWAYS);
     }
 
-    private void updateFoodRanking() {
-        foodRankingGraph.getData().clear();
-
+    /** --------------------------- MÉTODOS DE ACTUALIZACIÓN (Sin cambios) --------------------------- */
+    private void updateMovieRanking(List<Map<String, Object>> rankingData) {
+        movieRankingGraph.getData().clear();
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>("Palomitas Grandes", 400));
-        series.getData().add(new XYChart.Data<>("Hot Dog", 130));
-        series.getData().add(new XYChart.Data<>("Refresco Mediano", 120));
 
-        foodRankingGraph.getData().add(series);
+        for (Map<String, Object> item : rankingData) {
+            String movieTitle = (String) item.get("tituloPelicula");
+            Number viewers = (Number) item.get("total_espectadores");
+            series.getData().add(new XYChart.Data<>(movieTitle, viewers));
+        }
 
-        javafx.application.Platform.runLater(() -> {
-            series.getData().get(0).getNode().setStyle("-fx-bar-fill: #28a745;"); // verde
-            series.getData().get(1).getNode().setStyle("-fx-bar-fill: #17a2b8;"); // celeste
-            series.getData().get(2).getNode().setStyle("-fx-bar-fill: #6f42c1;"); // púrpura
+        movieRankingGraph.getData().add(series);
+
+        Platform.runLater(() -> {
+            for (int i = 0; i < series.getData().size(); i++) {
+                series.getData().get(i).getNode().setStyle("-fx-bar-fill: " + CHART_COLORS[i % CHART_COLORS.length] + ";");
+            }
         });
     }
 
-    /** --------------------------- MÉTODOS DE NAVEGACIÓN --------------------------- */
-    @FXML
-    private void registerMovieSale() {
-        // TODO: Integrar lógica de ventas de películas
+    private void updateFoodRanking(List<Map<String, Object>> rankingData) {
+        foodRankingGraph.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+
+        for (Map<String, Object> item : rankingData) {
+            String productName = (String) item.get("nombreProducto");
+            Number totalSold = (Number) item.get("total_vendido");
+            series.getData().add(new XYChart.Data<>(productName, totalSold));
+        }
+
+        foodRankingGraph.getData().add(series);
+
+        Platform.runLater(() -> {
+            for (int i = 0; i < series.getData().size(); i++) {
+                series.getData().get(i).getNode().setStyle("-fx-bar-fill: " + CHART_COLORS[i % CHART_COLORS.length] + ";");
+            }
+        });
     }
 
-    private void actualizarDatos() {
-        // TODO: Cargar desde movieSalesService
+    /** --------------------------- MÉTODOS DE NAVEGACIÓN (Sin cambios) --------------------------- */
+    @FXML
+    private void changeSceneSales(MouseEvent event) throws IOException {
+        JavaFxApplication.changeScene("SalesArea.fxml");
     }
 
     @FXML
-    private void action() throws IOException {
-        JavaFxApplication.changeScene("SignUp.fxml");
+    private void changeSceneInven(MouseEvent event) throws IOException {
+        JavaFxApplication.changeScene("SmartInventory.fxml");
     }
 }
