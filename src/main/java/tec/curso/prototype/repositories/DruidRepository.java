@@ -9,12 +9,6 @@ import tec.curso.prototype.dto.TicketSaleEventDto;
 public interface DruidRepository {
 
     /**
-     * Envía una consulta SQL de ingesta de datos a Druid.
-     *
-     * @param sql la sentencia SQL (INSERT) a ejecutar.
-     */
-    void ingerirDatos(String sql);
-    /**
      * Envía una consulta SQL de lectura (SELECT) a Druid.
      *
      * @param sql la sentencia SQL (SELECT) a ejecutar.

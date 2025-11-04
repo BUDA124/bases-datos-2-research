@@ -7,7 +7,6 @@ volumes:
   router_var: {}
   druid_shared: {}
 
-
 services:
   postgres:
     container_name: postgres
@@ -21,7 +20,6 @@ services:
       - POSTGRES_USER=druid
       - POSTGRES_DB=druid
 
-  # Need 3.5 or later for container nodes
   zookeeper:
     container_name: zookeeper
     image: zookeeper:3.5.10
@@ -45,6 +43,11 @@ services:
       - coordinator
     env_file:
       - environment
+    # --- MEMORIA PARA EL COORDINATOR ---
+    environment:
+      - DRUID_XMS=2g
+      - DRUID_XMX=2g
+      - DRUID_MAXDIRECTMEMORYSIZE=2g
 
   broker:
     image: apache/druid:34.0.0
@@ -61,6 +64,11 @@ services:
       - broker
     env_file:
       - environment
+    # --- MEMORIA PARA EL BROKER ---
+    environment:
+      - DRUID_XMS=2g
+      - DRUID_XMX=2g
+      - DRUID_MAXDIRECTMEMORYSIZE=2g
 
   historical:
     image: apache/druid:34.0.0
@@ -96,6 +104,10 @@ services:
       - middleManager
     env_file:
       - environment
+    # --- MEMORIA Y CAPACIDAD PARA EL MIDDLEMANAGER ---
+    environment:
+      - druid_worker_capacity=3
+      - druid_indexer_runner_javaOpts=-server -Xms2g -Xmx2g -XX:MaxDirectMemorySize=2g
 
   router:
     image: apache/druid:34.0.0

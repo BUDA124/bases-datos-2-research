@@ -2,7 +2,7 @@ package tec.curso.prototype.controllers;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
+import javafx.scene.text.Text;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tec.curso.prototype.JavaFxApplication;
@@ -25,11 +25,11 @@ public class WelcomeController {
 
     // --- Componentes FXML para las Tarjetas Inteligentes ---
     @FXML
-    private Label flujoDineroLabel;
+    private Text flujoDineroLabel;
     @FXML
-    private Label mejorPeliculaLabel;
+    private Text mejorPeliculaLabel;
     @FXML
-    private Label estadoInventarioLabel;
+    private Text estadoInventarioLabel;
 
     @Autowired
     public WelcomeController(StatisticsService statisticsService, InMemoryDataStore dataStore) {
